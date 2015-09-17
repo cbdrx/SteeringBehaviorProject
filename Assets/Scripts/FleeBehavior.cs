@@ -19,5 +19,6 @@ public class FleeBehavior : MonoBehaviour {
     {
         moveTo = transform.position - target.position;
         transform.position += moveTo.normalized * FleeStrength * Time.deltaTime;
+        Debug.DrawLine(transform.position, transform.position + moveTo.normalized * 10, Color.red);
 	}
 }
