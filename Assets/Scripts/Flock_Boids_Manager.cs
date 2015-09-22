@@ -10,6 +10,7 @@ public class Flock_Boids_Manager : MonoBehaviour {
     public float chaseStrength;
     public float dodgeStrength;
     public float dodgeRadius;
+    public bool chase;
 
     public float alignmentStrength;
     //Unintuitively, higher cohesionStrength leads to a less clustered flock
@@ -37,6 +38,7 @@ public class Flock_Boids_Manager : MonoBehaviour {
 	// Use this for initialization
 	void Start () 
     {
+        chase = true;
         flock = new algorithmBoid[initialNumberOfBoids];
         for (int i = 0; i < initialNumberOfBoids; i++ )
         {
@@ -56,7 +58,10 @@ public class Flock_Boids_Manager : MonoBehaviour {
             separationResult = applySeparation(flock[i]);
             alignmentResult = applyAlignment(flock[i]);
             cohesionResult = applyCohesion(flock[i]);
-            chaseResult = applyChase(flock[i]);
+
+            if(chase) chaseResult = applyChase(flock[i]);
+            else chaseResult = Vector3.zero;
+
             dodgeResult = applyDodge(flock[i]);
 
             //flock[i].velocity = Vector3.zero; //added this to test something : results - no benefit
