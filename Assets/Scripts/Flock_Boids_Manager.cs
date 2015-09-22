@@ -4,6 +4,8 @@ using System.Collections;
 public class Flock_Boids_Manager : MonoBehaviour {
 
     public float separationRadius;
+    public float flockRadius;
+    public float boidSpeed;
 
     public float alignmentStrength;
     //Unintuitively, higher cohesionStrength leads to a less clustered flock
@@ -12,7 +14,13 @@ public class Flock_Boids_Manager : MonoBehaviour {
     public int initialNumberOfBoids;
     public Transform boid;
 
-    private Transform[] flock;
+    public struct algorithmBoid
+    {
+        public Transform boidTransform;
+        public Vector3 lastPosition;
+        public Vector3 velocity;
+    }
+    private algorithmBoid[] flock;
     private Vector3 separationResult;
     private Vector3 alignmentResult;
     private Vector3 cohesionResult;
@@ -23,37 +31,47 @@ public class Flock_Boids_Manager : MonoBehaviour {
 	// Use this for initialization
 	void Start () 
     {
-        flock = new Transform[initialNumberOfBoids];
+        flock = new algorithmBoid[initialNumberOfBoids];
         for (int i = 0; i < initialNumberOfBoids; i++ )
         {
-            flock[i] = Instantiate(boid);
+            flock[i].boidTransform = Instantiate(boid);
+            flock[i].boidTransform.parent = gameObject.transform;
+            flock[i].boidTransform.position = new Vector3(Random.Range(-flockRadius, flockRadius), 0.5f, Random.Range(-flockRadius, flockRadius));
+            flock[i].lastPosition = flock[i].boidTransform.position;
+            flock[i].velocity = Vector3.zero;
         }	
 	}
 	
 	// Update is called once per frame
 	void Update () 
     {
-	    foreach (Transform member in flock)
+        for(int i= 0; i < initialNumberOfBoids; i++)
         {
-            separationResult = applySeparation(member);
-            alignmentResult = applyAlignment(member);
-            cohesionResult = applyCohesion(member);
+            separationResult = applySeparation(flock[i]);
+            alignmentResult = applyAlignment(flock[i]);
+            cohesionResult = applyCohesion(flock[i]);
 
+            //flock[i].velocity = Vector3.zero; //added this to test something : results - no benefit
+            //flock[i].velocity = (flock[i].boidTransform.position - flock[i].lastPosition); //For some reason, removing this line makes it work much better. What.
+            flock[i].velocity += separationResult + alignmentResult + cohesionResult;
+            Debug.DrawLine(flock[i].boidTransform.position, flock[i].boidTransform.position + flock[i].velocity,Color.red);
+            flock[i].boidTransform.position += flock[i].velocity * boidSpeed* Time.deltaTime;
             
+            flock[i].lastPosition = flock[i].boidTransform.position;
         }
 	}
 
-    Vector3 applySeparation(Transform theBoid)
+    Vector3 applySeparation(algorithmBoid theBoid)
     {
         temp = Vector3.zero;
 
-        foreach (Transform flockMate in flock)
+        foreach (algorithmBoid flockMate in flock)
         {
-            if(flockMate != theBoid)
+            if(flockMate.boidTransform != theBoid.boidTransform)
             {
-                if(Vector3.Distance(theBoid.position,flockMate.position) < separationRadius)
+                if(Vector3.Distance(theBoid.boidTransform.position,flockMate.boidTransform.position) < separationRadius)
                 {
-                    temp = temp - (flockMate.position - theBoid.position);
+                    temp = temp - (flockMate.boidTransform.position - theBoid.boidTransform.position);
                 }
             }
         }
@@ -61,23 +79,32 @@ public class Flock_Boids_Manager : MonoBehaviour {
         return temp;
     }
 
-    Vector3 applyCohesion(Transform theBoid)
+    Vector3 applyCohesion(algorithmBoid theBoid)
     {
         temp = Vector3.zero;
 
-        foreach (Transform flockmate in flock)
+        foreach (algorithmBoid flockmate in flock)
         {
-            if(flockmate != theBoid)
+            if(flockmate.boidTransform != theBoid.boidTransform)
             {
-                temp += flockmate.position;
+                temp += flockmate.boidTransform.position;
             }
         }
-        temp = temp / (flock.GetLength(0) -1);
-        return (temp - theBoid.position) / cohesionStrength;
+        temp = temp / (initialNumberOfBoids -1);
+        return (temp - theBoid.boidTransform.position) / cohesionStrength;
     }
     
-    Vector3 applyAlignment(Transform theBoid)
+    Vector3 applyAlignment(algorithmBoid theBoid)
     {
-        return Vector3.zero;
+        temp = Vector3.zero;
+        foreach( algorithmBoid flockmate in flock)
+        {
+            if(flockmate.boidTransform != theBoid.boidTransform)
+            {
+                temp += (flockmate.boidTransform.position - flockmate.lastPosition);
+            }
+        }
+        temp = temp / (initialNumberOfBoids - 1);
+        return (temp - theBoid.velocity) / alignmentStrength; //removing the "Velocity" part makes them swarm around each other
     }
 }
