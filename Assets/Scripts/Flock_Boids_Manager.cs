@@ -6,6 +6,10 @@ public class Flock_Boids_Manager : MonoBehaviour {
     public float separationRadius;
     public float flockRadius;
     public float boidSpeed;
+    public Transform target;
+    public float chaseStrength;
+    public float dodgeStrength;
+    public float dodgeRadius;
 
     public float alignmentStrength;
     //Unintuitively, higher cohesionStrength leads to a less clustered flock
@@ -24,6 +28,8 @@ public class Flock_Boids_Manager : MonoBehaviour {
     private Vector3 separationResult;
     private Vector3 alignmentResult;
     private Vector3 cohesionResult;
+    private Vector3 chaseResult;
+    private Vector3 dodgeResult;
     private Vector3 temp;
     
 
@@ -50,11 +56,13 @@ public class Flock_Boids_Manager : MonoBehaviour {
             separationResult = applySeparation(flock[i]);
             alignmentResult = applyAlignment(flock[i]);
             cohesionResult = applyCohesion(flock[i]);
+            chaseResult = applyChase(flock[i]);
+            dodgeResult = applyDodge(flock[i]);
 
             //flock[i].velocity = Vector3.zero; //added this to test something : results - no benefit
             //flock[i].velocity = (flock[i].boidTransform.position - flock[i].lastPosition); //For some reason, removing this line makes it work much better. What.
-            flock[i].velocity += separationResult + alignmentResult + cohesionResult;
-            Debug.DrawLine(flock[i].boidTransform.position, flock[i].boidTransform.position + flock[i].velocity,Color.red);
+            flock[i].velocity += separationResult + alignmentResult + cohesionResult + chaseResult + dodgeResult;
+            //Debug.DrawLine(flock[i].boidTransform.position, flock[i].boidTransform.position + flock[i].velocity,Color.red);
             flock[i].boidTransform.position += flock[i].velocity * boidSpeed* Time.deltaTime;
             
             flock[i].lastPosition = flock[i].boidTransform.position;
@@ -67,7 +75,7 @@ public class Flock_Boids_Manager : MonoBehaviour {
 
         foreach (algorithmBoid flockMate in flock)
         {
-            if(flockMate.boidTransform != theBoid.boidTransform)
+            if (flockMate.boidTransform.gameObject.GetInstanceID() != theBoid.boidTransform.gameObject.GetInstanceID())
             {
                 if(Vector3.Distance(theBoid.boidTransform.position,flockMate.boidTransform.position) < separationRadius)
                 {
@@ -85,7 +93,7 @@ public class Flock_Boids_Manager : MonoBehaviour {
 
         foreach (algorithmBoid flockmate in flock)
         {
-            if(flockmate.boidTransform != theBoid.boidTransform)
+            if(flockmate.boidTransform.gameObject.GetInstanceID() != theBoid.boidTransform.gameObject.GetInstanceID())
             {
                 temp += flockmate.boidTransform.position;
             }
@@ -99,7 +107,7 @@ public class Flock_Boids_Manager : MonoBehaviour {
         temp = Vector3.zero;
         foreach( algorithmBoid flockmate in flock)
         {
-            if(flockmate.boidTransform != theBoid.boidTransform)
+            if (flockmate.boidTransform.gameObject.GetInstanceID() != theBoid.boidTransform.gameObject.GetInstanceID())
             {
                 temp += (flockmate.boidTransform.position - flockmate.lastPosition);
             }
@@ -107,4 +115,26 @@ public class Flock_Boids_Manager : MonoBehaviour {
         temp = temp / (initialNumberOfBoids - 1);
         return (temp - theBoid.velocity) / alignmentStrength; //removing the "Velocity" part makes them swarm around each other
     }
+    
+    Vector3 applyChase(algorithmBoid theBoid)
+    {
+        temp = Vector3.zero;
+
+        temp = target.position - theBoid.boidTransform.position;
+
+        return temp.normalized * chaseStrength;
+
+    }
+
+    Vector3 applyDodge(algorithmBoid theBoid)
+    {
+        temp = Vector3.zero;
+
+        if(Vector3.Distance(theBoid.boidTransform.position, target.position) < dodgeRadius)
+        {
+            temp = theBoid.boidTransform.position - target.position;
+        }
+        return temp.normalized * dodgeStrength;
+    }
+
 }
