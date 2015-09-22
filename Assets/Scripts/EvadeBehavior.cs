@@ -4,8 +4,8 @@ using System.Collections;
 public class EvadeBehavior : MonoBehaviour {
 
     public Transform target;
-    public float FleeStrength;
     public float EvadeStrength;
+    public float Speed;
 
     private Vector3 moveTo;
     private Vector3 targetPreviousPosition;
@@ -25,13 +25,13 @@ public class EvadeBehavior : MonoBehaviour {
         targetMovement = (target.position - targetPreviousPosition);
         targetHeading = target.position - targetMovement;
 
-        moveTo = transform.position - target.position;
+        moveTo = transform.position - (target.position + targetMovement * EvadeStrength);
 
-        if (targetMovement != Vector3.zero)
-        {
-            transform.position += moveTo.normalized * EvadeStrength * Time.deltaTime;
-            targetPreviousPosition = target.position;
-        }
+
+        transform.position += moveTo.normalized * Speed * Time.deltaTime;
+        targetPreviousPosition = target.position;
+
         Debug.DrawLine(transform.position, transform.position + moveTo.normalized * 10, Color.red);
+        Debug.DrawLine(transform.position, target.position, Color.green);
 	}
 }

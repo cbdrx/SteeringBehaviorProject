@@ -6,9 +6,9 @@ public class PursuitBehavior : MonoBehaviour {
     [SerializeField]
     private Transform target;
     [SerializeField]
-    private float pursuitSpeed;
+    private float speed;
     [SerializeField]
-    private float leadOff;
+    private float pursuitStrength;
     [SerializeField]
     private float criticalDistance;
 
@@ -28,21 +28,11 @@ public class PursuitBehavior : MonoBehaviour {
 
 	void Update () 
     {  
-        //if 
-        if (Vector3.Distance(target.position, transform.position) < criticalDistance)
-        {
-            //if the target is close enough, we want to move directly towards the target
-            movement = (target.position - transform.position).normalized * pursuitSpeed * Time.deltaTime;
-            Debug.Log("Going at him!");
-        }
-        else
-        {
-            //otherwise, we need to lead it off, minimizing the distance travelled
-            targetMovement = target.position - targetLastPosition;
-            targetHeading = target.position + targetMovement;
-            interceptTarget = targetHeading + targetMovement * leadOff;
-            movement = (interceptTarget - transform.position).normalized * pursuitSpeed * Time.deltaTime;      
-        }
+        //otherwise, we need to lead it off, minimizing the distance travelled
+        targetMovement = target.position - targetLastPosition;
+        targetHeading = target.position + targetMovement;
+        interceptTarget = targetHeading + targetMovement * pursuitStrength;
+        movement = (interceptTarget - transform.position).normalized * speed * Time.deltaTime;      
 
         transform.position += movement;
         targetLastPosition = target.position;

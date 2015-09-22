@@ -17,10 +17,11 @@ public class PlayerController : MonoBehaviour {
 	void Update () 
     {
         float horizontal, vertical;
-        horizontal = Input.GetAxis("Horizontal") * speed * Time.deltaTime;
-        vertical = Input.GetAxis("Vertical") * speed * Time.deltaTime;
+        horizontal = Input.GetAxis("Horizontal");
+        vertical = Input.GetAxis("Vertical");
 
 
-        transform.position += horizontal * Vector3.right + vertical * Vector3.forward;
+        transform.position += 
+            (horizontal * Vector3.right + vertical * Vector3.forward).normalized * speed * Time.deltaTime;
 	}
 }
