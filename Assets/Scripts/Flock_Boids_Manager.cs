@@ -10,6 +10,8 @@ public class Flock_Boids_Manager : MonoBehaviour {
     public float chaseStrength;
     public float dodgeStrength;
     public float dodgeRadius;
+    public float detectWallDistance;
+    public float wallDetectionStrength;
     public bool chase;
 
     public float alignmentStrength;
@@ -68,8 +70,20 @@ public class Flock_Boids_Manager : MonoBehaviour {
             //flock[i].velocity = (flock[i].boidTransform.position - flock[i].lastPosition); //For some reason, removing this line makes it work much better. What.
             flock[i].velocity += separationResult + alignmentResult + cohesionResult + chaseResult + dodgeResult;
             //Debug.DrawLine(flock[i].boidTransform.position, flock[i].boidTransform.position + flock[i].velocity,Color.red);
-            flock[i].boidTransform.position += flock[i].velocity * boidSpeed* Time.deltaTime;
             
+            Ray findWall= new Ray(flock[i].boidTransform.position,flock[i].velocity);
+            
+            //If we would have hit a wall, we will move away from it, because that'd just be unboidlike
+            RaycastHit myRaycastHit;
+            if (Physics.Raycast(findWall, out myRaycastHit, detectWallDistance, 1 << 8))
+            {
+                 Vector3 moveAwayVector = (flock[i].boidTransform.position - myRaycastHit.point).normalized;
+                 moveAwayVector = moveAwayVector - new Vector3(0,moveAwayVector.y,0);
+                 flock[i].velocity +=  moveAwayVector * wallDetectionStrength;
+            }
+                
+            flock[i].boidTransform.position += flock[i].velocity * boidSpeed * Time.deltaTime;
+
             flock[i].lastPosition = flock[i].boidTransform.position;
         }
 	}
