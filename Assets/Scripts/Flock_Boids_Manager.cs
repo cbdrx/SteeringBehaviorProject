@@ -12,7 +12,6 @@ public class Flock_Boids_Manager : MonoBehaviour {
     public float dodgeRadius;
     public float detectWallDistance;
     public float wallDetectionStrength;
-    public float wallAvoidanceStrength;
     public bool chase;
 
     public float alignmentStrength;
@@ -34,7 +33,6 @@ public class Flock_Boids_Manager : MonoBehaviour {
     private Vector3 cohesionResult;
     private Vector3 chaseResult;
     private Vector3 dodgeResult;
-    private Vector3 wallAvoidResult;
     private Vector3 temp;
     
 
@@ -68,17 +66,21 @@ public class Flock_Boids_Manager : MonoBehaviour {
 
             dodgeResult = applyDodge(flock[i]);
 
-            wallAvoidResult = applyWallAvoidance(flock[i]);
-
             //flock[i].velocity = Vector3.zero; //added this to test something : results - no benefit
             //flock[i].velocity = (flock[i].boidTransform.position - flock[i].lastPosition); //For some reason, removing this line makes it work much better. What.
-            flock[i].velocity += separationResult + alignmentResult + cohesionResult + chaseResult + dodgeResult + applyWallAvoidance;
+            flock[i].velocity += separationResult + alignmentResult + cohesionResult + chaseResult + dodgeResult;
             //Debug.DrawLine(flock[i].boidTransform.position, flock[i].boidTransform.position + flock[i].velocity,Color.red);
             
             Ray findWall= new Ray(flock[i].boidTransform.position,flock[i].velocity);
             
             //If we would have hit a wall, we will move away from it, because that'd just be unboidlike
             RaycastHit myRaycastHit;
+            if (Physics.Raycast(findWall, out myRaycastHit, detectWallDistance, 1 << 8))
+            {
+                 Vector3 moveAwayVector = (flock[i].boidTransform.position - myRaycastHit.point).normalized;
+                 moveAwayVector = moveAwayVector - new Vector3(0,moveAwayVector.y,0);
+                 flock[i].velocity +=  moveAwayVector * wallDetectionStrength;
+            }
                 
             flock[i].boidTransform.position += flock[i].velocity * boidSpeed * Time.deltaTime;
 
@@ -152,22 +154,6 @@ public class Flock_Boids_Manager : MonoBehaviour {
             temp = theBoid.boidTransform.position - target.position;
         }
         return temp.normalized * dodgeStrength;
-    }
-
-    Vector3 applyWallAvoidance(algorithmBoid theBoid)
-    {
-            Ray findWall= new Ray(theBoid.boidTransform.position,theBoid.velocity);
-            RaycastHit myRaycastHit;
-            if (Physics.Raycast(findWall, out myRaycastHit, detectWallDistance, 1 << 8))
-            {
-                 Vector3 moveAwayVector = Vector3.Cross(theBoid.velocity,theBoid.boidTransform.up);
-                 moveAwayVector = moveAwayVector - new Vector3(0,moveAwayVector.y,0);
-                 return moveAwayVector * wallAvoidanceStrength;
-            }
-            else
-            {
-                return Vector3.zero;
-            }
     }
 
 }
