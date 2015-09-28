@@ -28,6 +28,8 @@ public class EvadeBehavior : MonoBehaviour {
         moveTo = transform.position - (target.position + targetMovement * EvadeStrength);
 
 
+
+
         transform.position += moveTo.normalized * Speed * Time.deltaTime;
         targetPreviousPosition = target.position;
 

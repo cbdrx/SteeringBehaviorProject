@@ -36,12 +36,12 @@ public class Flock_Boids_Manager : MonoBehaviour {
     private Vector3 dodgeResult;
     private Vector3 temp;
     
-
+    
 
 	// Use this for initialization
 	void Start () 
     {
-        chase = true;
+        chase = false;
         flock = new algorithmBoid[initialNumberOfBoids];
         for (int i = 0; i < initialNumberOfBoids; i++ )
         {
