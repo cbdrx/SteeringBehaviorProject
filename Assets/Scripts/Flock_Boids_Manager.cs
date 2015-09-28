@@ -64,7 +64,6 @@ public class Flock_Boids_Manager : MonoBehaviour {
 
             if(chase) chaseResult = applyChase(flock[i]);
             else chaseResult = Vector3.zero;
-
             dodgeResult = applyDodge(flock[i]);
 
             //flock[i].velocity = Vector3.zero; //added this to test something : results - no benefit
@@ -83,10 +82,10 @@ public class Flock_Boids_Manager : MonoBehaviour {
                  flock[i].velocity +=  moveAwayVector * wallDetectionStrength 
                      + Vector3.Cross(flock[i].velocity,flock[i].boidTransform.up).normalized * wallMoveStrength;
             }
-                
+            flock[i].lastPosition = flock[i].boidTransform.position;    
             flock[i].boidTransform.position += flock[i].velocity * boidSpeed * Time.deltaTime;
 
-            flock[i].lastPosition = flock[i].boidTransform.position;
+            //flock[i].lastPosition = flock[i].boidTransform.position;
         }
 	}
 
@@ -134,7 +133,7 @@ public class Flock_Boids_Manager : MonoBehaviour {
             }
         }
         temp = temp / (initialNumberOfBoids - 1);
-        return (temp - theBoid.velocity) / alignmentStrength; //removing the "Velocity" part makes them swarm around each other
+        return (temp - theBoid.velocity) / alignmentStrength; //removing the "Velocity" part makes them swarm around each other / - theBoid.velocity
     }
     
     Vector3 applyChase(algorithmBoid theBoid)
