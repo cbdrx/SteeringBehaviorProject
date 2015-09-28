@@ -12,6 +12,7 @@ public class Flock_Boids_Manager : MonoBehaviour {
     public float dodgeRadius;
     public float detectWallDistance;
     public float wallDetectionStrength;
+    public float wallMoveStrength;
     public bool chase;
 
     public float alignmentStrength;
@@ -79,7 +80,8 @@ public class Flock_Boids_Manager : MonoBehaviour {
             {
                  Vector3 moveAwayVector = (flock[i].boidTransform.position - myRaycastHit.point).normalized;
                  moveAwayVector = moveAwayVector - new Vector3(0,moveAwayVector.y,0);
-                 flock[i].velocity +=  moveAwayVector * wallDetectionStrength;
+                 flock[i].velocity +=  moveAwayVector * wallDetectionStrength 
+                     + Vector3.Cross(flock[i].velocity,flock[i].boidTransform.up).normalized * wallMoveStrength;
             }
                 
             flock[i].boidTransform.position += flock[i].velocity * boidSpeed * Time.deltaTime;
