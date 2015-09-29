@@ -70,9 +70,7 @@ public class Flock_Boids_Manager : MonoBehaviour {
             else chaseResult = Vector3.zero;
             dodgeResult = applyDodge(flock[i]);
 
-            //flock[i].velocity = (flock[i].boidTransform.position - flock[i].lastPosition); //For some reason, removing this line makes it work much better. What.
             tempBoid.velocity += separationResult + alignmentResult + cohesionResult + chaseResult + dodgeResult;
-            //Debug.DrawLine(flock[i].boidTransform.position, flock[i].boidTransform.position + flock[i].velocity,Color.red);
 
             Ray findWall = new Ray(flock[i].boidTransform.position, flock[i].velocity);
 
@@ -84,6 +82,7 @@ public class Flock_Boids_Manager : MonoBehaviour {
                 moveAwayVector = moveAwayVector - new Vector3(0, moveAwayVector.y, 0);
                 tempBoid.velocity += moveAwayVector * wallDetectionStrength
                     + Vector3.Cross(flock[i].velocity, flock[i].boidTransform.up).normalized * wallMoveStrength;
+                //gets a vector "sideways away" from the wall
             }
             tempBoid.lastPosition = flock[i].boidTransform.position;
             tempBoid.boidTransform.position += flock[i].velocity * boidSpeed * Time.deltaTime;
@@ -93,7 +92,7 @@ public class Flock_Boids_Manager : MonoBehaviour {
         }
 	}
 
-    //Below are implementations of the algorithms found at 
+    //Below are implementations of the boids algorithm functions provided to us
 
     Vector3 applySeparation(algorithmBoid theBoid)
     {
