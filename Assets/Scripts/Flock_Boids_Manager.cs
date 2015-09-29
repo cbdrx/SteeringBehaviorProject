@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class Flock_Boids_Manager : MonoBehaviour {
 
@@ -28,13 +29,14 @@ public class Flock_Boids_Manager : MonoBehaviour {
         public Vector3 lastPosition;
         public Vector3 velocity;
     }
-    private algorithmBoid[] flock;
+    private List<algorithmBoid> flock;
     private Vector3 separationResult;
     private Vector3 alignmentResult;
     private Vector3 cohesionResult;
     private Vector3 chaseResult;
     private Vector3 dodgeResult;
     private Vector3 temp;
+    private algorithmBoid tempBoid;
     
     
 
@@ -42,52 +44,56 @@ public class Flock_Boids_Manager : MonoBehaviour {
 	void Start () 
     {
         chase = false;
-        flock = new algorithmBoid[initialNumberOfBoids];
+        flock = new List<algorithmBoid>(initialNumberOfBoids);
         for (int i = 0; i < initialNumberOfBoids; i++ )
         {
-            flock[i].boidTransform = Instantiate(boid);
-            flock[i].boidTransform.parent = gameObject.transform;
-            flock[i].boidTransform.position = new Vector3(Random.Range(-flockRadius, flockRadius), 0.5f, Random.Range(-flockRadius, flockRadius));
-            flock[i].lastPosition = flock[i].boidTransform.position;
-            flock[i].velocity = Vector3.zero;
+            tempBoid.boidTransform = Instantiate(boid);
+            tempBoid.boidTransform.parent = gameObject.transform;
+            tempBoid.boidTransform.position = new Vector3(Random.Range(-flockRadius, flockRadius), 0.0f, Random.Range(-flockRadius, flockRadius));
+            tempBoid.lastPosition = tempBoid.boidTransform.position;
+            tempBoid.velocity = Vector3.zero;
+            flock.Add(tempBoid);
         }	
 	}
 	
 	// Update is called once per frame
 	void Update () 
     {
-        for(int i= 0; i < initialNumberOfBoids; i++)
+        for (int i = 0; i < flock.Count; i++)
         {
+            tempBoid = flock[i];
             separationResult = applySeparation(flock[i]);
             alignmentResult = applyAlignment(flock[i]);
             cohesionResult = applyCohesion(flock[i]);
 
-            if(chase) chaseResult = applyChase(flock[i]);
+            if (chase) chaseResult = applyChase(flock[i]);
             else chaseResult = Vector3.zero;
             dodgeResult = applyDodge(flock[i]);
 
-            //flock[i].velocity = Vector3.zero; //added this to test something : results - no benefit
             //flock[i].velocity = (flock[i].boidTransform.position - flock[i].lastPosition); //For some reason, removing this line makes it work much better. What.
-            flock[i].velocity += separationResult + alignmentResult + cohesionResult + chaseResult + dodgeResult;
+            tempBoid.velocity += separationResult + alignmentResult + cohesionResult + chaseResult + dodgeResult;
             //Debug.DrawLine(flock[i].boidTransform.position, flock[i].boidTransform.position + flock[i].velocity,Color.red);
-            
-            Ray findWall= new Ray(flock[i].boidTransform.position,flock[i].velocity);
-            
+
+            Ray findWall = new Ray(flock[i].boidTransform.position, flock[i].velocity);
+
             //If we would have hit a wall, we will move away from it, because that'd just be unboidlike
             RaycastHit myRaycastHit;
             if (Physics.Raycast(findWall, out myRaycastHit, detectWallDistance, 1 << 8))
             {
-                 Vector3 moveAwayVector = (flock[i].boidTransform.position - myRaycastHit.point).normalized;
-                 moveAwayVector = moveAwayVector - new Vector3(0,moveAwayVector.y,0);
-                 flock[i].velocity +=  moveAwayVector * wallDetectionStrength 
-                     + Vector3.Cross(flock[i].velocity,flock[i].boidTransform.up).normalized * wallMoveStrength;
+                Vector3 moveAwayVector = (flock[i].boidTransform.position - myRaycastHit.point).normalized;
+                moveAwayVector = moveAwayVector - new Vector3(0, moveAwayVector.y, 0);
+                tempBoid.velocity += moveAwayVector * wallDetectionStrength
+                    + Vector3.Cross(flock[i].velocity, flock[i].boidTransform.up).normalized * wallMoveStrength;
             }
-            flock[i].lastPosition = flock[i].boidTransform.position;    
-            flock[i].boidTransform.position += flock[i].velocity * boidSpeed * Time.deltaTime;
+            tempBoid.lastPosition = flock[i].boidTransform.position;
+            tempBoid.boidTransform.position += flock[i].velocity * boidSpeed * Time.deltaTime;
+            flock[i] = tempBoid;
 
             //flock[i].lastPosition = flock[i].boidTransform.position;
         }
 	}
+
+    //Below are implementations of the algorithms found at 
 
     Vector3 applySeparation(algorithmBoid theBoid)
     {
@@ -155,6 +161,18 @@ public class Flock_Boids_Manager : MonoBehaviour {
             temp = theBoid.boidTransform.position - target.position;
         }
         return temp.normalized * dodgeStrength;
+    }
+
+    public void eatBoid(GameObject boid)
+    {
+        for(int i = 0; i < flock.Count; i++)
+        {
+            if(flock[i].boidTransform.gameObject.GetInstanceID() == boid.GetInstanceID())
+            {
+                flock.Remove(flock[i]);
+            }
+            boid.SetActive(false);
+        }
     }
 
 }

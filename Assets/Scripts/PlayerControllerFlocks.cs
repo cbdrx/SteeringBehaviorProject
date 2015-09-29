@@ -7,6 +7,8 @@ public class PlayerControllerFlocks : MonoBehaviour
     public float speed;
     public FlockManager manager;
 
+    private int boidsEaten = 0;
+
 
     // Use this for initialization
     void Start()
